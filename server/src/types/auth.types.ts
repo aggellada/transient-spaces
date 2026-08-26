@@ -7,8 +7,8 @@ export interface DecodedToken extends JwtPayload {
 export interface AuthUser {
   id: string;
   username: string;
-  name: string;
-  current_place_id: string;
+  current_place_id: string | null;
+  profile_id: string;
 }
 
 export interface User {

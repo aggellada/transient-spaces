@@ -6,8 +6,8 @@ declare global {
       user?: {
         id: string;
         username: string;
-        name: string;
-        current_place_id: string;
+        current_place_id: string | null;
+        profile_id: string;
       };
     }
   }

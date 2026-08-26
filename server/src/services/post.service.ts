@@ -2,21 +2,21 @@ import { sql } from "../lib/db.js";
 import type { AuthUser } from "../types/auth.types.js";
 import type { CreatePostDTO } from "../types/posts.types.js";
 
-export const getAllPostsService = async (currentUserId: string) => {
+export const getAllPostsService = async (profile_id: string) => {
   const posts = await sql`
     SELECT 
       posts.id,
       posts.title, 
       posts.description, 
       posts.created_at,
-      users.username AS creator_username,
-      users.name AS creator_name,
+      profiles.first_name AS creator_first_name,
+      profiles.last_name AS creator_last_name,
       
       (SELECT COUNT(*)::int FROM post_likes WHERE post_likes.post_id = posts.id) AS like_count,
       
       EXISTS (
         SELECT 1 FROM post_likes 
-        WHERE post_likes.post_id = posts.id AND post_likes.user_id = ${currentUserId}
+        WHERE post_likes.post_id = posts.id AND post_likes.profile_id = ${profile_id}
       ) AS is_liked_by_user,
 
       COALESCE(
@@ -24,18 +24,19 @@ export const getAllPostsService = async (currentUserId: string) => {
           SELECT json_agg(
             json_build_object(
               'content', post_comments.content,
-              'comment_creator_name', comment_authors.name
+              'comment_creator_first_name', comment_authors.first_name,
+              'comment_creator_last_name', comment_authors.last_name
             )
           ) 
           FROM post_comments 
-          JOIN users AS comment_authors ON post_comments.user_id = comment_authors.id
+          JOIN profiles AS comment_authors ON post_comments.profile_id = comment_authors.id
           WHERE post_comments.post_id = posts.id
         ), 
         '[]'::json
       ) AS post_comments
 
     FROM posts
-    JOIN users ON posts.creator_id = users.id
+    JOIN profiles ON posts.creator_id = profiles.id
     ORDER BY posts.created_at DESC
     LIMIT 10;
 `;
@@ -45,33 +46,33 @@ export const getAllPostsService = async (currentUserId: string) => {
 
 export const createPostService = async (postData: CreatePostDTO, user: AuthUser) => {
   const { title, description } = postData;
-  const { id, current_place_id } = user;
+  const { profile_id, current_place_id } = user;
 
   if (!title || !description) {
     throw new Error("Title and description are required");
   }
 
-  if (!id || !current_place_id) {
+  if (!profile_id || !current_place_id) {
     throw new Error("Unauthorized: Creator ID and transient place is required");
   }
 
-  const newPost = await sql`
-    INSERT INTO posts ( creator_id, title, description, place_id)
-        VALUES (${user.id}, ${title}, ${description}, ${user.current_place_id})
+  const [newPost] = await sql`
+    INSERT INTO posts (creator_id, title, description, place_id)
+        VALUES (${profile_id}, ${title}, ${description}, ${current_place_id})
         RETURNING *
     `;
 
-  if (newPost.length === 0) {
+  if (!newPost) {
     throw new Error("Failed to create a new post");
   }
 
-  return newPost[0];
+  return newPost;
 };
 
-export const deletePostService = async (postId: string, userId: string) => {
+export const deletePostService = async (postId: string, profileId: string) => {
   const [deletedPost] = await sql`
     DELETE FROM posts
-    WHERE id=${postId} AND creator_id=${userId}
+    WHERE id=${postId} AND creator_id=${profileId}
     RETURNING *
   `;
 
@@ -82,13 +83,13 @@ export const deletePostService = async (postId: string, userId: string) => {
   return deletedPost;
 };
 
-export const editPostService = async (postData: CreatePostDTO, userId: string, postId: string) => {
+export const editPostService = async (postData: CreatePostDTO, profileId: string, postId: string) => {
   const { title, description } = postData;
 
   const [editedPost] = await sql`
     UPDATE posts
     SET title=${title}, description=${description}
-    WHERE id=${postId} AND creator_id=${userId}
+    WHERE id=${postId} AND creator_id=${profileId}
     RETURNING *;
   `;
 
@@ -99,32 +100,31 @@ export const editPostService = async (postData: CreatePostDTO, userId: string, p
   return editedPost;
 };
 
-export const likePostService = async (userId: string, postId: string) => {
-  const likePost = await sql`
-    INSERT INTO post_likes (user_id, post_id)
-    VALUES (${userId}, ${postId})
+export const likePostService = async (profileId: string, postId: string) => {
+  const [like] = await sql`
+    INSERT INTO post_likes (profile_id, post_id)
+    VALUES (${profileId}, ${postId})
+    ON CONFLICT (profile_id, post_id) DO NOTHING
+    RETURNING *;
   `;
 
-  if (!likePost) {
-    throw new Error("Failed to like post");
-  }
+  return !!like;
 };
 
-export const unlikePostService = async (userId: string, postId: string) => {
-  const unlikePost = await sql`
+export const unlikePostService = async (profileId: string, postId: string) => {
+  const [unlike] = await sql`
     DELETE FROM post_likes
-    WHERE user_id = ${userId} AND post_id = ${postId}
+    WHERE profile_id = ${profileId} AND post_id = ${postId}
+    RETURNING *;
   `;
 
-  if (!unlikePost) {
-    throw new Error("Failed to unlike post");
-  }
+  return !!unlike;
 };
 
-export const commentPostService = async (userId: string, postId: string, content: string) => {
+export const commentPostService = async (profileId: string, postId: string, content: string) => {
   const commentPost = await sql`
-    INSERT INTO post_comments (user_id, post_id, content)
-    VALUES (${userId}, ${postId}, ${content})
+    INSERT INTO post_comments (profile_id, post_id, content)
+    VALUES (${profileId}, ${postId}, ${content})
   `;
 
   if (!commentPost) {

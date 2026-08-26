@@ -11,9 +11,9 @@ import {
 
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const profile_id = req.user!.profile_id;
 
-    const allPosts = await getAllPostsService(userId);
+    const allPosts = await getAllPostsService(profile_id);
 
     return res.status(200).json({ success: true, message: "Successfully fetched all posts", data: allPosts });
   } catch (error: any) {
@@ -27,7 +27,7 @@ export const createPost = async (req: Request, res: Response) => {
     const postData = req.body;
     const user = req.user!;
 
-    const newPost = await createPostService(postData, user!);
+    const newPost = await createPostService(postData, user);
 
     return res.status(201).json({ success: true, message: "Successfully created a new post", data: newPost });
   } catch (error: any) {
@@ -39,9 +39,9 @@ export const createPost = async (req: Request, res: Response) => {
 export const deletePost = async (req: Request, res: Response) => {
   try {
     const postId = req.params.id as string;
-    const userId = req.user!.id;
+    const profileId = req.user!.profile_id;
 
-    const deletedPost = await deletePostService(postId, userId);
+    const deletedPost = await deletePostService(postId, profileId);
 
     return res.status(201).json({ success: true, message: "Successfully deleted post", data: deletedPost });
   } catch (error: any) {
@@ -52,39 +52,47 @@ export const deletePost = async (req: Request, res: Response) => {
 
 export const likePost = async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const profileId = req.user!.profile_id;
     const postId = req.params.id as string;
 
-    const likedPost = await likePostService(userId, postId);
+    const wasFreshlyLiked = await likePostService(profileId, postId);
 
-    return res.status(200).json({ success: true, message: "You liked a post", data: likedPost });
+    if (wasFreshlyLiked) {
+      return res.status(201).json({ success: true, message: "Post liked" });
+    } else {
+      return res.status(200).json({ success: true, message: "Post was already liked" });
+    }
   } catch (error: any) {
-    console.error(error.message);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("Like Error:", error.message);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const unlikePost = async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const profileId = req.user!.profile_id;
     const postId = req.params.id as string;
 
-    const unlikedPost = await unlikePostService(userId, postId);
+    const wasUnliked = await unlikePostService(profileId, postId);
 
-    return res.status(200).json({ success: true, message: "You uniked a post", data: unlikedPost });
+    if (wasUnliked) {
+      return res.status(200).json({ success: true, message: "Post unliked" });
+    } else {
+      return res.status(200).json({ success: true, message: "Post was already unliked" });
+    }
   } catch (error: any) {
-    console.error(error.message);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("Unlike Error:", error.message);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const commentPost = async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const profileId = req.user!.profile_id;
     const postId = req.params.id as string;
     const { content } = req.body;
 
-    const commentPost = await commentPostService(userId, postId, content);
+    const commentPost = await commentPostService(profileId, postId, content);
 
     return res.status(200).json({ success: true, message: "You commented on a post", data: commentPost });
   } catch (error: any) {
@@ -95,11 +103,11 @@ export const commentPost = async (req: Request, res: Response) => {
 
 export const editPost = async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const profileId = req.user!.profile_id;
     const postData = req.body;
     const postId = req.params.id as string;
 
-    const editedPost = await editPostService(postData, userId, postId);
+    const editedPost = await editPostService(postData, profileId, postId);
 
     return res
       .status(200)

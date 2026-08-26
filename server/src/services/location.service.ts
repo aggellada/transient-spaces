@@ -4,8 +4,6 @@ import type { coordinates } from "../types/location.types.js";
 export const syncUserLocationService = async (coords: coordinates, userId: string) => {
   const { lat, lng } = coords;
 
-  console.log(lat, lng);
-
   if (!lat || !lng) {
     throw new Error("No coordinates found");
   }
@@ -24,9 +22,9 @@ export const syncUserLocationService = async (coords: coordinates, userId: strin
   const placeName = matchedPlace.length > 0 ? matchedPlace[0]?.name : null;
 
   await sql`
-    UPDATE users 
+    UPDATE profiles 
     SET current_place_id = ${placeId}
-    WHERE id = ${userId}
+    WHERE user_id = ${userId}
   `;
 
   return {

@@ -2,10 +2,6 @@ import jwt from "jsonwebtoken";
 import type { Response } from "express";
 
 export const generateToken = async (id: string, res: Response) => {
-  if (!id) {
-    throw new Error("Credentials must be fulfilled");
-  }
-
   const token = jwt.sign({ id }, process.env.JWT_SECRET_KEY!, { expiresIn: "7d" });
 
   res.cookie("jwt", token, {

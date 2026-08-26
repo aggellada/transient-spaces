@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/location", locationRoutes);
-app.use("/api/account", profileRoutes);
+app.use("/api/profile", profileRoutes);
 
 const startServer = async () => {
   try {

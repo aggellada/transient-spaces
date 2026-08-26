@@ -4,9 +4,9 @@ import type { CreateUserDTO, LoginUserDTO } from "../types/user.types.js";
 import type { AuthUser, User } from "../types/auth.types.js";
 
 export const createUserService = async (userData: CreateUserDTO) => {
-  const { name, username, email, password } = userData;
+  const { first_name, last_name, username, email, password } = userData;
 
-  if (!name || !username || !email || !password) {
+  if (!first_name || !last_name || !username || !email || !password) {
     throw new Error("All fields are required");
   }
 
@@ -35,46 +35,70 @@ export const createUserService = async (userData: CreateUserDTO) => {
 
   const hashedPassword = await argon2.hash(password);
 
-  const newUser = await sql`
-    INSERT INTO users (name, username, email, password)
-    VALUES (${name}, ${username}, ${email}, ${hashedPassword})
-    RETURNING username, name, email`;
+  const [newUser] = await sql`
+    INSERT INTO users (first_name, last_name, username, email, password)
+    VALUES (${first_name}, ${last_name}, ${username}, ${email}, ${hashedPassword})
+    RETURNING id, username, email
+    `;
 
-  return newUser[0];
+  if (!newUser) {
+    throw new Error("Failed to create user");
+  }
+
+  const newProfile = await sql`
+    INSERT INTO profiles (user_id, first_name, last_name)
+    VALUES (${newUser.id}, ${first_name}, ${last_name})
+  `;
+
+  if (!newProfile) {
+    throw new Error("Failed to create profile");
+  }
+
+  return newUser;
 };
 
 export const loginService = async (userData: LoginUserDTO) => {
   const { username, password } = userData;
 
-  const user = (await sql`
+  if (!username || !password) {
+    throw new Error("Invalid credentials");
+  }
+
+  const [user] = await sql`
         SELECT * FROM users 
         WHERE username=${username}
-    `) as User[];
+    `;
 
-  if (user.length === 0) {
+  if (!user) {
     throw new Error("User does not exist");
   }
 
-  const verifiedPassword = await argon2.verify(user[0]?.password!, password);
+  const verifiedPassword = await argon2.verify(user.password, password);
 
   if (!verifiedPassword) {
     throw new Error("Credentials do not match");
   }
 
-  const { password: _, ...loggedInUser } = user[0]!;
+  const { password: _, ...loggedInUser } = user;
 
   return loggedInUser;
 };
 
-export const getUserById = async (id: string): Promise<AuthUser | null> => {
-  const users = await sql`
-      SELECT id, username, name, current_place_id FROM users 
-      WHERE id=${id}
-  `;
+export const getUserById = async (id: string) => {
+  const [user] = await sql`
+  SELECT 
+    u.id, 
+    u.username,
+    p.current_place_id,
+    p.id AS profile_id
+  FROM users u
+  JOIN profiles p ON u.id = p.user_id
+  WHERE u.id = ${id}
+`;
 
-  if (users.length === 0) {
+  if (!user) {
     throw new Error("User not found");
   }
 
-  return users[0] as AuthUser;
+  return user as AuthUser;
 };

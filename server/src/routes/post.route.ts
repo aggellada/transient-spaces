@@ -13,7 +13,7 @@ import { checkLocationMiddleware } from "../middlewares/location.middleware.js";
 
 const router = express.Router();
 
-// GET /    Feature: should still be able to see all posts even if not logged in
+// GET / TO DO Feature: should still be able to see all posts even if not logged in
 router.get("/", protectRoute, checkLocationMiddleware, getAllPosts);
 router.post("/", protectRoute, checkLocationMiddleware, createPost);
 router.patch("/:id/edit", protectRoute, checkLocationMiddleware, editPost);

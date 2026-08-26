@@ -20,7 +20,7 @@ export const protectRoute = async (req: Request, res: Response, next: NextFuncti
     const user = await getUserById(decoded.id);
 
     if (!user) {
-      return res.status(401).json({ success: false, message: "Unauthorized: User no longer exists" });
+      return res.status(401).json({ success: false, message: "Unauthorized: User does not exists" });
     }
 
     req.user = user;

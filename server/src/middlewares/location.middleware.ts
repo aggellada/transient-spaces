@@ -3,13 +3,8 @@ import { sql } from "../lib/db.js";
 
 export const checkLocationMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const [userCurrentPlace] = await sql`
-        SELECT current_place_id from USERS
-        where id=${req.user!.id}
-    `;
-
-    if (!userCurrentPlace) {
-      return res.status(500).json({ success: false, message: "You are not in a transient place" });
+    if (!req.user!.current_place_id) {
+      return res.status(403).json({ success: false, message: "You are not currently in a transient place" });
     }
 
     next();
