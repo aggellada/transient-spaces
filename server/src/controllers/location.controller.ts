@@ -3,7 +3,7 @@ import { syncUserLocationService } from "../services/location.service.js";
 
 export const syncUserLocation = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id!;
+    const userId = req.user?.id;
 
     const result = await syncUserLocationService(req.body, userId);
 

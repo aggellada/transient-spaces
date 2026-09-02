@@ -2,7 +2,52 @@ import { sql } from "../lib/db.js";
 import type { AuthUser } from "../types/auth.types.js";
 import type { CreatePostDTO } from "../types/posts.types.js";
 
-export const getAllPostsService = async (profile_id: string) => {
+// export const getAllPostsService = async (profile_id: string) => {
+//   const posts = await sql`
+//     SELECT
+//       posts.id,
+//       posts.title,
+//       posts.description,
+//       posts.created_at,
+//       profiles.first_name AS creator_first_name,
+//       profiles.last_name AS creator_last_name,
+
+//       (SELECT COUNT(*)::int FROM post_likes WHERE post_likes.post_id = posts.id) AS like_count,
+
+//       EXISTS (
+//         SELECT 1 FROM post_likes
+//         WHERE post_likes.post_id = posts.id AND post_likes.profile_id = ${profile_id}
+//       ) AS is_liked_by_user,
+
+//       COALESCE(
+//         (
+//           SELECT json_agg(
+//             json_build_object(
+//               'content', post_comments.content,
+//               'comment_creator_first_name', comment_authors.first_name,
+//               'comment_creator_last_name', comment_authors.last_name
+//             )
+//           )
+//           FROM post_comments
+//           JOIN profiles AS comment_authors ON post_comments.profile_id = comment_authors.id
+//           WHERE post_comments.post_id = posts.id
+//         ),
+//         '[]'::json
+//       ) AS post_comments
+
+//     FROM posts
+//     JOIN profiles ON posts.creator_id = profiles.id
+//     ORDER BY posts.created_at DESC
+//     LIMIT 10;
+// `;
+
+//   return posts;
+// };
+
+export const getAllPostsService = async (placeId: string, profile_id?: string) => {
+  // Convert undefined to a SQL-safe null for guests
+  const safeProfileId = profile_id || null;
+
   const posts = await sql`
     SELECT 
       posts.id,
@@ -13,10 +58,11 @@ export const getAllPostsService = async (profile_id: string) => {
       profiles.last_name AS creator_last_name,
       
       (SELECT COUNT(*)::int FROM post_likes WHERE post_likes.post_id = posts.id) AS like_count,
-      
+      (SELECT COUNT(*)::int FROM post_comments WHERE post_comments.post_id = posts.id) as comments_count,
+      -- Added ::uuid cast to prevent Postgres type errors when safeProfileId is null
       EXISTS (
         SELECT 1 FROM post_likes 
-        WHERE post_likes.post_id = posts.id AND post_likes.profile_id = ${profile_id}
+        WHERE post_likes.post_id = posts.id AND post_likes.profile_id = ${safeProfileId}::uuid
       ) AS is_liked_by_user,
 
       COALESCE(
@@ -37,9 +83,13 @@ export const getAllPostsService = async (profile_id: string) => {
 
     FROM posts
     JOIN profiles ON posts.creator_id = profiles.id
+    
+    -- Added the filter to only fetch posts for the current transient place
+    WHERE posts.place_id = ${placeId}
+    
     ORDER BY posts.created_at DESC
     LIMIT 10;
-`;
+  `;
 
   return posts;
 };

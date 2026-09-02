@@ -1,9 +1,9 @@
 import express from "express";
-import { protectRoute } from "../middlewares/auth.middleware.js";
 import { syncUserLocation } from "../controllers/location.controller.js";
+import { optionalAuth } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/", protectRoute, syncUserLocation);
+router.post("/", optionalAuth, syncUserLocation);
 
 export default router;

@@ -12,9 +12,21 @@ import locationRoutes from "./routes/location.route.js";
 import profileRoutes from "./routes/profile.route.js";
 
 import { initDb } from "./lib/db.js";
+import { createServer } from "http";
+import { setupSocketHandlers } from "./lib/socketHandlers.js";
+import { Server } from "socket.io";
+
+const PORT = process.env.PORT || 5000;
 
 const app: Application = express();
-const PORT = process.env.PORT || 5000;
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(helmet());
 app.use(morgan("dev"));
@@ -32,11 +44,13 @@ const startServer = async () => {
   try {
     await initDb();
 
-    app.listen(PORT, () => {
+    setupSocketHandlers(io);
+
+    httpServer.listen(PORT, () => {
       console.log(`Listening on PORT: `, PORT);
     });
   } catch (error) {
-    console.error("Failed to initialize database:", error);
+    console.error("Failed to start server: ", error);
     process.exit(1);
   }
 };

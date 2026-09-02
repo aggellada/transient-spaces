@@ -11,11 +11,20 @@ import {
 
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
-    const profile_id = req.user!.profile_id;
+    // 1. Grab the placeId (guaranteed to exist by checkLocationMiddleware)
+    const placeId = req.query.placeId as string;
 
-    const allPosts = await getAllPostsService(profile_id);
+    // 2. Safely grab the profile_id using optional chaining (will be undefined for guests)
+    const profile_id = req.user?.profile_id;
 
-    return res.status(200).json({ success: true, message: "Successfully fetched all posts", data: allPosts });
+    // 3. Pass BOTH to your SQL service so it can filter by location and check likes
+    const allPosts = await getAllPostsService(placeId, profile_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully fetched all posts",
+      data: allPosts,
+    });
   } catch (error: any) {
     console.error(error.message);
     return res.status(500).json({ success: false, message: error.message });

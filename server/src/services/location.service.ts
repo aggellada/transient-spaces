@@ -1,7 +1,7 @@
 import { sql } from "../lib/db.js";
 import type { coordinates } from "../types/location.types.js";
 
-export const syncUserLocationService = async (coords: coordinates, userId: string) => {
+export const syncUserLocationService = async (coords: coordinates, userId?: string) => {
   const { lat, lng } = coords;
 
   if (!lat || !lng) {
@@ -21,11 +21,13 @@ export const syncUserLocationService = async (coords: coordinates, userId: strin
   const placeId = matchedPlace.length > 0 ? matchedPlace[0]?.id : null;
   const placeName = matchedPlace.length > 0 ? matchedPlace[0]?.name : null;
 
-  await sql`
+  if (userId) {
+    await sql`
     UPDATE profiles 
     SET current_place_id = ${placeId}
     WHERE user_id = ${userId}
   `;
+  }
 
   return {
     isInsidePlace: placeId !== null,

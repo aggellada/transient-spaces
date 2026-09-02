@@ -80,6 +80,30 @@ export const initDb = async (): Promise<void> => {
       )
     `;
 
+    const CHAT_ROOMS_TABLE = await sql`
+      CREATE TABLE IF NOT EXISTS chat_rooms (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user1_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+        user2_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+        CHECK (user1_id < user2_id),
+        UNIQUE (user1_id, user2_id)
+      )
+    `;
+
+    const MESSAGES_TABLE = await sql`
+      CREATE TABLE IF NOT EXISTS messages (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        chat_room_id UUID REFERENCES chat_rooms(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+
+        sender_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+        receiver_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
     console.log("Database Initialized successfully.");
   } catch (error) {
     console.error("Database query failed:", error);

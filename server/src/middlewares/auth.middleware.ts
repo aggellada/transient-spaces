@@ -19,10 +19,6 @@ export const protectRoute = async (req: Request, res: Response, next: NextFuncti
 
     const user = await getUserById(decoded.id);
 
-    if (!user) {
-      return res.status(401).json({ success: false, message: "Unauthorized: User does not exists" });
-    }
-
     req.user = user;
 
     next();
@@ -35,5 +31,31 @@ export const protectRoute = async (req: Request, res: Response, next: NextFuncti
     console.error("Error in protectRoute middleware:", errorMessage);
 
     return res.status(401).json({ success: false, message: "Unauthorized: Invalid token" });
+  }
+};
+
+export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.cookies.jwt;
+
+    if (!token) {
+      req.user = undefined;
+      return next();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as DecodedToken;
+
+    if (!decoded.id) {
+      req.user = undefined;
+      return next();
+    }
+
+    const user = await getUserById(decoded.id);
+    req.user = user;
+
+    next();
+  } catch (error: any) {
+    req.user = undefined;
+    next();
   }
 };

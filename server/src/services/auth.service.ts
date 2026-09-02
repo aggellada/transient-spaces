@@ -97,7 +97,7 @@ export const getUserById = async (id: string) => {
 `;
 
   if (!user) {
-    throw new Error("User not found");
+    throw new Error("Unauthorized: User does not exists");
   }
 
   return user as AuthUser;
