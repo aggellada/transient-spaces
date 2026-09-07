@@ -21,7 +21,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoggingIn: false,
   isSigningUp: false,
   isLoggingOut: false,
-  loginError: null,
+  loginError: null  ,
   isCheckingAuth: false,
 
   login: async (loginData: LoginData) => {
@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isSigningUp: true });
     try {
       const response = await api.post("/auth/signup", signupData);
-      set({ authUser: response.data.data });
+      // set({ authUser: response.data.data });
     } catch (error) {
       console.error("Error in signup store", error);
     } finally {

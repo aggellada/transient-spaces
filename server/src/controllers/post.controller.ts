@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import {
   commentPostService,
   createPostService,
+  deleteCommentService,
   deletePostService,
   editPostService,
   getAllPostsService,
@@ -12,13 +13,10 @@ import {
 
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
-    // 1. Grab the placeId (guaranteed to exist by checkLocationMiddleware)
     const placeId = req.query.placeId as string;
 
-    // 2. Safely grab the profile_id using optional chaining (will be undefined for guests)
     const profile_id = req.user?.profile_id;
 
-    // 3. Pass BOTH to your SQL service so it can filter by location and check likes
     const allPosts = await getAllPostsService(placeId, profile_id);
 
     return res.status(200).json({
@@ -137,6 +135,24 @@ export const getPost = async (req: Request, res: Response) => {
     const post = await getPostService(id);
 
     return res.status(200).json({ success: true, message: "Successfully fetched post", data: post });
+  } catch (error: any) {
+    console.error(error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteComment = async (req: Request, res: Response) => {
+  try {
+    const profileId = req.user!.profile_id;
+    const { id: commentId } = req.params as {
+      id: string;
+    };
+
+    const deletedComment = await deleteCommentService(profileId, commentId);
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Successfully deleted your comment", data: deletedComment });
   } catch (error: any) {
     console.error(error.message);
     return res.status(500).json({ success: false, message: error.message });

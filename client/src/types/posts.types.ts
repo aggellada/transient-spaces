@@ -11,6 +11,7 @@ export interface PostCommentsDTO {
   content: string;
   comment_creator_first_name: string;
   comment_creator_last_name: string;
+  comment_creator_profile_id: string;
 }
 
 export interface PostDTO {

@@ -7,13 +7,13 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useModalStore } from "../../store/useModalStore";
 import CommentModal from "../../components/CommentModal";
 import PostPageSkeleton from "../../components/skeleton/PostPageSkeleton";
+import RightSidebar from "../../components/RightSidebar";
 
 function PostPage() {
   const { id } = useParams();
 
-  const { getPost, post, resetPost, isGettingPost } = usePostStore();
+  const { getPost, post, resetPost, isGettingPost, deleteComment } = usePostStore();
   const { authUser } = useAuthStore();
-
   const { openCommentModal } = useModalStore();
 
   useEffect(() => {
@@ -30,7 +30,11 @@ function PostPage() {
     openCommentModal();
   };
 
-  // console.log(post);
+  const handleDeleteComment = (commentId: string) => {
+    deleteComment(commentId);
+  };
+
+  console.log(post);
 
   if (isGettingPost) return <PostPageSkeleton />;
 
@@ -55,7 +59,7 @@ function PostPage() {
                     Subscribe
                   </span>
                   <span className="text-[#777777]">...</span>
-                  <span className="text-[#777777]">X</span>
+                  <span className="text-[#777777]">Delete</span>
                 </div>
               </div>
             </div>
@@ -100,13 +104,20 @@ function PostPage() {
                   <div className="flex justify-between">
                     <div className="flex gap-2">
                       <h1 className="font-bold text-md">
-                        {post?.creator_first_name} {post?.creator_last_name}
+                        {comment?.comment_creator_first_name} {comment?.comment_creator_last_name}
                       </h1>
                       <span className="text-[#777777]">5d ago</span>
                     </div>
                     <div className="flex gap-4">
                       <span className="text-[#777777]">...</span>
-                      <span className="text-[#777777]">X</span>
+                      {authUser?.profile_id === comment.comment_creator_profile_id && (
+                        <span
+                          className="text-[#777777]"
+                          onClick={() => handleDeleteComment(comment.comment_id)}
+                        >
+                          X {comment.comment_id}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -118,7 +129,7 @@ function PostPage() {
           ))}
         </div>
       </div>
-      <div className="w-full max-w-sm "></div>
+      <div className="w-full max-w-sm ">{!authUser && <RightSidebar />}</div>
     </>
   );
 }

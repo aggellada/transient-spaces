@@ -162,7 +162,8 @@ export const getPostService = async (postId: string) => {
               'comment_id', post_comments.id,
               'content', post_comments.content,
               'comment_creator_first_name', comment_authors.first_name,
-              'comment_creator_last_name', comment_authors.last_name
+              'comment_creator_last_name', comment_authors.last_name,
+              'comment_creator_profile_id', comment_authors.id
             )
           ) 
           FROM post_comments 
@@ -181,4 +182,18 @@ export const getPostService = async (postId: string) => {
   }
 
   return post;
+};
+
+export const deleteCommentService = async (profileId: string, commentId: string) => {
+  console.log(profileId, commentId);
+  const [deletedPost] = await sql`
+    DELETE FROM post_comments WHERE id=${commentId} AND profile_id=${profileId}
+    RETURNING *
+  `;
+
+  if (!deletedPost) {
+    throw new Error("Failed to delete comment");
+  }
+
+  return deletedPost;
 };

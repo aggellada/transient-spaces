@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { usePostStore } from "./store/usePostStore";
 import { useLocationStore } from "./store/useLocationStore";
 
-import { Route, Routes } from "react-router";
+import { Navigate, Route, Routes } from "react-router";
 import { useAuthStore } from "./store/useAuthStore";
 import SignUpPage from "./pages/auth/SignUpPage";
 import PostPage from "./pages/post/PostPage";
@@ -38,7 +38,7 @@ function App() {
       {<LoginModal />}
       {isPostModalOpen && <PostModal />}
       <Routes>
-        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" replace />} />
         <Route path="/" element={<FeedPage />} />
         <Route path="/posts/:id" element={<PostPage />} />
       </Routes>

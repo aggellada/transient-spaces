@@ -15,13 +15,6 @@ function SignupForm() {
   };
 
   return (
-    // <div className="w-full h-screen flex justify-center items-center text-white bg-[#131414]">
-    //   <div className="w-full h-fit p-8 max-w-md rounded-lg flex justify-center items-center flex-col ">
-    //     <Lollipop className="text-[#FE6719] size-12 bg-[#FE6719]/20 p-1 rounded-lg mb-4 " />
-    //     <h1 className="font-bold text-2xl">Create your account</h1>
-    //     <p className="text-[#FE6719]">
-    //       <span className="text-[#7e7e7e]">Already have an account?</span> Sign in
-    //     </p>
     <form className="w-full flex flex-col gap-2 mt-6" onSubmit={(e) => submitSignupForm(e)}>
       <label>First Name</label>
       <input className="p-2 border border-[#2c2c2c] rounded-md " type="text" name="first_name" required />
@@ -37,8 +30,6 @@ function SignupForm() {
         {isSigningUp ? <Loader2 className="animate-spin" /> : "Sign up"}
       </button>
     </form>
-    //   </div>
-    // </div>
   );
 }
 

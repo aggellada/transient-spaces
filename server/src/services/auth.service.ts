@@ -89,6 +89,8 @@ export const getUserById = async (id: string) => {
   SELECT 
     u.id, 
     u.username,
+    u.first_name,
+    u.last_name,
     p.current_place_id,
     p.id AS profile_id
   FROM users u

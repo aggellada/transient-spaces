@@ -8,6 +8,7 @@ interface PostState {
   post: PostDTO | null;
   isGettingAllPosts: boolean;
   isGettingPost: boolean;
+  isDeletingComment: boolean;
   isCreatingPost: boolean;
   isCommenting: boolean;
   createPost: (postData: CreatePostDTO, placeId: string) => Promise<void>;
@@ -17,6 +18,7 @@ interface PostState {
   deletePost: (postId: string, placeId: string) => Promise<void>;
   commentPost: (postId: string, commentData: CreateCommentDTO, authUser: AuthUser) => Promise<void>;
   getPost: (postId: string) => Promise<void>;
+  deleteComment: (postId: string) => Promise<void>;
   resetPost: () => void;
 }
 
@@ -26,6 +28,7 @@ export const usePostStore = create<PostState>((set, get) => ({
   isGettingAllPosts: false,
   isGettingPost: false,
   isCreatingPost: false,
+  isDeletingComment: false,
   isCommenting: false,
 
   getAllPosts: async (placeId: string) => {
@@ -115,6 +118,8 @@ export const usePostStore = create<PostState>((set, get) => ({
       set({ isCommenting: true });
       const response = await api.post(`/posts/${postId}/comment`, commentData);
 
+      console.log("commentpost user: ", authUser);
+
       const newComment = {
         id: response.data.data?.id || Date.now().toString(),
         content: response.data.data.content,
@@ -141,6 +146,17 @@ export const usePostStore = create<PostState>((set, get) => ({
       console.error(error);
     } finally {
       set({ isCommenting: false });
+    }
+  },
+
+  deleteComment: async (commentId: string) => {
+    set({ isDeletingComment: true });
+    try {
+      const response = await api.delete(`/posts/comment/${commentId}/delete-comment`);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      set({ isDeletingComment: false });
     }
   },
 

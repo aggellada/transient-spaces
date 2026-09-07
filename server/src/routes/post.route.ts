@@ -2,6 +2,7 @@ import express from "express";
 import {
   commentPost,
   createPost,
+  deleteComment,
   deletePost,
   editPost,
   getAllPosts,
@@ -22,5 +23,6 @@ router.delete("/:id/delete", protectRoute, deletePost);
 router.post("/:id/like", protectRoute, likePost);
 router.delete("/:id/unlike", protectRoute, unlikePost);
 router.post("/:id/comment", protectRoute, checkLocationMiddleware, commentPost);
+router.delete("/comment/:id/delete-comment", protectRoute, deleteComment);
 
 export default router;

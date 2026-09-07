@@ -40,6 +40,8 @@ function CommentModal() {
     closeCommentModal();
   };
 
+  console.log(authUser);
+
   return (
     <dialog
       ref={commentModalRef}
