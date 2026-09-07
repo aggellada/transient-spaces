@@ -5,6 +5,7 @@ import {
   deletePost,
   editPost,
   getAllPosts,
+  getPost,
   likePost,
   unlikePost,
 } from "../controllers/post.controller.js";
@@ -15,10 +16,11 @@ const router = express.Router();
 
 router.get("/", optionalAuth, getAllPosts);
 router.post("/", protectRoute, checkLocationMiddleware, createPost);
+router.get("/:id", optionalAuth, getPost);
 router.patch("/:id/edit", protectRoute, checkLocationMiddleware, editPost);
-router.delete("/:id/delete", protectRoute, checkLocationMiddleware, deletePost);
+router.delete("/:id/delete", protectRoute, deletePost);
 router.post("/:id/like", protectRoute, likePost);
-router.post("/:id/unlike", protectRoute, unlikePost);
+router.delete("/:id/unlike", protectRoute, unlikePost);
 router.post("/:id/comment", protectRoute, checkLocationMiddleware, commentPost);
 
 export default router;

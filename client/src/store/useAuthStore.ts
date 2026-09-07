@@ -8,10 +8,12 @@ interface AuthState {
   isLoggingIn: boolean;
   isSigningUp: boolean;
   isLoggingOut: boolean;
+  isCheckingAuth: boolean;
   loginError: string | null;
   login: (loginData: LoginData) => Promise<void>;
   signup: (loginData: CreateUserDTO) => Promise<void>;
   logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -20,6 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isSigningUp: false,
   isLoggingOut: false,
   loginError: null,
+  isCheckingAuth: false,
 
   login: async (loginData: LoginData) => {
     set({ isLoggingIn: true });
@@ -53,9 +56,20 @@ export const useAuthStore = create<AuthState>((set) => ({
       await api.get("/auth/logout");
       set({ authUser: null });
     } catch (error) {
-      console.error("Error in signup store", error);
+      console.error("Error in logout store", error);
     } finally {
       set({ isLoggingOut: false });
+    }
+  },
+
+  checkAuth: async () => {
+    try {
+      const response = await api.get("/auth/check");
+      set({ authUser: response.data.data });
+    } catch (error) {
+      set({ authUser: null });
+    } finally {
+      set({ isCheckingAuth: false });
     }
   },
 }));

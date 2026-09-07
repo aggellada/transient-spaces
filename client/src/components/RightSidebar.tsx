@@ -1,15 +1,11 @@
 import { Lollipop, Search } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import LoginModal from "./LoginModal";
 import { useNavigate } from "react-router";
+import { useModalStore } from "../store/useModalStore";
 
-interface RightSidebarProps {
-  ref: React.RefObject<HTMLDialogElement | null>;
-  handleLoginModalClick: () => void;
-  showLoginModal: boolean;
-}
-function RightSidebar({ ref, handleLoginModalClick, showLoginModal }: RightSidebarProps) {
+function RightSidebar() {
   const { authUser } = useAuthStore();
+  const { openLoginModal } = useModalStore();
 
   const navigate = useNavigate();
 
@@ -19,7 +15,6 @@ function RightSidebar({ ref, handleLoginModalClick, showLoginModal }: RightSideb
 
   return (
     <>
-      {showLoginModal && <LoginModal ref={ref} handleLoginModalClick={handleLoginModalClick} />}
       <div className="w-full max-w-sm bg-[#161718] p-8 text-gray-300 flex flex-col gap-6 sticky top-0 h-screen">
         <div className="relative">
           <Search className="absolute left-4 top-2.5 text" />
@@ -37,7 +32,7 @@ function RightSidebar({ ref, handleLoginModalClick, showLoginModal }: RightSideb
             <button className="bg-[#FE6719] text-white w-full p-2 rounded-lg" onClick={handleSignupClick}>
               Sign up
             </button>
-            <button className="bg-[#363737] text-white w-full p-2 rounded-lg" onClick={handleLoginModalClick}>
+            <button className="bg-[#363737] text-white w-full p-2 rounded-lg" onClick={openLoginModal}>
               Log in
             </button>
           </div>

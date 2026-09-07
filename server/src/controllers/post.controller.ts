@@ -5,6 +5,7 @@ import {
   deletePostService,
   editPostService,
   getAllPostsService,
+  getPostService,
   likePostService,
   unlikePostService,
 } from "../services/post.service.js";
@@ -121,6 +122,21 @@ export const editPost = async (req: Request, res: Response) => {
     return res
       .status(200)
       .json({ success: true, message: "Successfully edited your post", data: editedPost });
+  } catch (error: any) {
+    console.error(error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getPost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params as {
+      id: string;
+    };
+
+    const post = await getPostService(id);
+
+    return res.status(200).json({ success: true, message: "Successfully fetched post", data: post });
   } catch (error: any) {
     console.error(error.message);
     return res.status(500).json({ success: false, message: error.message });
