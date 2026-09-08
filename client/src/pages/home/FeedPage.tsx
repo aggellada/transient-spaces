@@ -1,5 +1,4 @@
 import { usePostStore } from "../../store/usePostStore";
-import { useEffect, useRef, useState } from "react";
 import PostModal from "../../components/PostModal";
 import SideNav from "../../components/SideNav";
 import RightSidebar from "../../components/RightSidebar";

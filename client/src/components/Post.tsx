@@ -6,7 +6,6 @@ import { useAuthStore } from "../store/useAuthStore";
 import DeleteModal from "./DeleteModal";
 import { useNavigate } from "react-router";
 import { useModalStore } from "../store/useModalStore";
-import FeedPageSkeleton from "./skeleton/FeedPageSkeleton";
 
 interface PostProps {
   post: PostDTO;
@@ -52,6 +51,8 @@ function Post({ post }: PostProps) {
     setShowDeleteModal((prev) => !prev);
   };
 
+  console.log(post, authUser?.profile_id);
+
   return (
     <>
       {showDeleteModal && (
@@ -70,9 +71,11 @@ function Post({ post }: PostProps) {
             <div className="flex gap-4">
               <span className="text-[#FE6719] text-sm ">Subscribe</span>
               <span className="text-[#777777]">...</span>
-              <span className="text-[#777777]" onClick={handleDeleteModalClick}>
-                X
-              </span>
+              {post.creator_id === authUser?.profile_id && (
+                <span className="text-[#777777]" onClick={handleDeleteModalClick}>
+                  X
+                </span>
+              )}
             </div>
           </div>
           <div className="w-full mb-4">

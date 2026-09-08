@@ -13,9 +13,9 @@ import PostModal from "./components/PostModal";
 
 function App() {
   const { getAllPosts } = usePostStore();
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { authUser, checkAuth } = useAuthStore();
   const { syncUserLocation, isSyncing, placeId } = useLocationStore();
-  const { isLoginModalOpen, isPostModalOpen } = useModalStore();
+  const { isPostModalOpen } = useModalStore();
 
   useEffect(() => {
     checkAuth();

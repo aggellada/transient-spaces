@@ -14,6 +14,7 @@ export const getAllPostsService = async (placeId: string, profile_id?: string) =
       posts.created_at,
       profiles.first_name AS creator_first_name,
       profiles.last_name AS creator_last_name,
+      profiles.id AS creator_id,
       
       (SELECT COUNT(*)::int FROM post_likes WHERE post_likes.post_id = posts.id) AS like_count,
       (SELECT COUNT(*)::int FROM post_comments WHERE post_comments.post_id = posts.id) as comments_count,

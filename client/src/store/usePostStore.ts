@@ -9,13 +9,14 @@ interface PostState {
   isGettingAllPosts: boolean;
   isGettingPost: boolean;
   isDeletingComment: boolean;
+  isDeletingPost: boolean;
   isCreatingPost: boolean;
   isCommenting: boolean;
   createPost: (postData: CreatePostDTO, placeId: string) => Promise<void>;
   getAllPosts: (placeId: string) => Promise<void>;
   likePost: (postId: string) => Promise<void>;
   unlikePost: (postId: string) => Promise<void>;
-  deletePost: (postId: string, placeId: string) => Promise<void>;
+  deletePost: (postId: string) => Promise<void>;
   commentPost: (postId: string, commentData: CreateCommentDTO, authUser: AuthUser) => Promise<void>;
   getPost: (postId: string) => Promise<void>;
   deleteComment: (commentId: string, postId: string) => Promise<void>;
@@ -27,6 +28,7 @@ export const usePostStore = create<PostState>((set, get) => ({
   post: null,
   isGettingAllPosts: false,
   isGettingPost: false,
+  isDeletingPost: false,
   isCreatingPost: false,
   isDeletingComment: false,
   isCommenting: false,
@@ -92,12 +94,18 @@ export const usePostStore = create<PostState>((set, get) => ({
     }
   },
 
-  deletePost: async (postId: string, placeId: string) => {
+  deletePost: async (postId: string) => {
     try {
+      set({ isDeletingPost: true });
       await api.delete(`/posts/${postId}/delete`);
-      get().getAllPosts(placeId);
+
+      set((state) => ({
+        posts: state.posts.filter((p) => p.id !== postId),
+      }));
     } catch (error) {
       console.error(error);
+    } finally {
+      set({ isDeletingPost: false });
     }
   },
 
