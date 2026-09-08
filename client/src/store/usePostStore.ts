@@ -18,7 +18,7 @@ interface PostState {
   deletePost: (postId: string, placeId: string) => Promise<void>;
   commentPost: (postId: string, commentData: CreateCommentDTO, authUser: AuthUser) => Promise<void>;
   getPost: (postId: string) => Promise<void>;
-  deleteComment: (postId: string) => Promise<void>;
+  deleteComment: (commentId: string, postId: string) => Promise<void>;
   resetPost: () => void;
 }
 
@@ -118,13 +118,12 @@ export const usePostStore = create<PostState>((set, get) => ({
       set({ isCommenting: true });
       const response = await api.post(`/posts/${postId}/comment`, commentData);
 
-      console.log("commentpost user: ", authUser);
-
       const newComment = {
-        id: response.data.data?.id || Date.now().toString(),
+        comment_id: response.data.data.id,
         content: response.data.data.content,
         comment_creator_first_name: authUser.first_name,
         comment_creator_last_name: authUser.last_name,
+        comment_creator_profile_id: authUser.profile_id,
       };
 
       set((state) => ({
@@ -133,9 +132,8 @@ export const usePostStore = create<PostState>((set, get) => ({
             ? ({
                 ...state.post,
                 comments_count: state.post.comments_count + 1,
-                // 2. Cast the array as 'any' to bypass missing fields like 'created_at'
                 post_comments: [newComment, ...(state.post.post_comments || [])] as any,
-              } as PostDTO) // 3. Guarantee TypeScript this perfectly matches your PostDTO!
+              } as PostDTO)
             : state.post,
 
         posts: state.posts.map((p) =>
@@ -149,12 +147,29 @@ export const usePostStore = create<PostState>((set, get) => ({
     }
   },
 
-  deleteComment: async (commentId: string) => {
+  deleteComment: async (commentId: string, postId: string) => {
     set({ isDeletingComment: true });
     try {
-      const response = await api.delete(`/posts/comment/${commentId}/delete-comment`);
+      await api.delete(`/posts/comment/${commentId}/delete-comment`);
+
+      set((state) => ({
+        post:
+          state.post && String(state.post.id) === String(postId)
+            ? ({
+                ...state.post,
+                comments_count: Math.max(0, state.post.comments_count - 1),
+                post_comments: (state.post.post_comments || []).filter(
+                  (comment) => String(comment.comment_id) !== String(commentId),
+                ),
+              } as PostDTO)
+            : state.post,
+
+        posts: state.posts.map((p) =>
+          String(p.id) === String(postId) ? { ...p, comments_count: Math.max(0, p.comments_count - 1) } : p,
+        ),
+      }));
     } catch (error) {
-      console.error(error);
+      console.error("Failed to delete comment:", error);
     } finally {
       set({ isDeletingComment: false });
     }

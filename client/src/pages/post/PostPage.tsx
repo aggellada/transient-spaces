@@ -31,7 +31,8 @@ function PostPage() {
   };
 
   const handleDeleteComment = (commentId: string) => {
-    deleteComment(commentId);
+    if (!post) return;
+    deleteComment(commentId, post.id);
   };
 
   console.log(post);
@@ -42,7 +43,7 @@ function PostPage() {
     <>
       <CommentModal />
       <SideNav />
-      <div className="w-full max-w-2xl h-screen">
+      <div className="w-full max-w-2xl min-h-screen">
         <div className="w-full text-white">
           <div className="w-full text-white flex gap-4 pb-4 pt-6">
             <CircleUser className="size-10" />
@@ -115,7 +116,7 @@ function PostPage() {
                           className="text-[#777777]"
                           onClick={() => handleDeleteComment(comment.comment_id)}
                         >
-                          X {comment.comment_id}
+                          X
                         </span>
                       )}
                     </div>
